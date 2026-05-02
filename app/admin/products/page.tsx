@@ -68,9 +68,9 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["admin"]}>
+    <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
       <div className="min-h-screen bg-muted/30">
-        <Sidebar role="admin" />
+        <Sidebar role={user?.role as any || "admin"} />
         <main className="md:ml-64 p-4 md:p-8">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

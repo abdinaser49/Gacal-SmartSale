@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
+import Link from "next/link"
 import { ProtectedRoute } from "@/components/protected-route"
 import { ProductGrid } from "@/components/pos/product-grid"
 import { Cart, type CartItem } from "@/components/pos/cart"
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Search, LogOut, CheckCircle, Printer } from "lucide-react"
+import { Search, LogOut, CheckCircle, Printer, Package } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 
@@ -149,6 +150,12 @@ export default function POSPage() {
               {t("welcome")}, <span className="font-medium text-foreground">{user?.name}</span>
             </span>
             <LanguageSwitcher />
+            <Link href="/admin/products" className="print:hidden">
+              <Button variant="outline" size="sm">
+                <Package className="mr-2 h-4 w-4" />
+                Manage Products
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               {t("logout")}

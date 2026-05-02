@@ -13,7 +13,7 @@ import { store } from "@/lib/store"
 
 
 interface SidebarProps {
-  role: "admin" | "manager"
+  role: "admin" | "manager" | "cashier"
 }
 
 export function Sidebar({ role }: SidebarProps) {
@@ -45,15 +45,19 @@ export function Sidebar({ role }: SidebarProps) {
   const managerLinks = [
     { href: "/manager", label: t("dashboard"), icon: LayoutDashboard },
     { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
-    { href: "/manager/products", label: t("products"), icon: Package },
+    { href: "/admin/products", label: t("products"), icon: Package },
     { href: "/manager/customers", label: t("customers") || "Customers", icon: UserCircle },
     { href: "/manager/sales", label: t("sales"), icon: BarChart3 },
     { href: "/manager/expenses", label: t("expenses") || "Expenses", icon: Receipt },
     { href: "/manager/reports", label: t("reports") || "Reports", icon: FileText },
   ]
 
+  const cashierLinks = [
+    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
+    { href: "/admin/products", label: t("products"), icon: Package },
+  ]
 
-  const links = role === "admin" ? adminLinks : managerLinks
+  const links = role === "admin" ? adminLinks : role === "manager" ? managerLinks : cashierLinks
 
   return (
     <>
