@@ -132,34 +132,12 @@ class Store {
   constructor() {
     // Initialize data from Supabase asynchronously if on client side
     if (typeof window !== 'undefined') {
-      // Load users
       this.loadUsers()
-
-      // Load settings (already handled partially in previous step, but let's make it consistent)
-      const globalSettings = localStorage.getItem('gacal_settings')
-      if (globalSettings) {
-        try {
-          this.settings['1'] = { ...this.defaultSettings, ...JSON.parse(globalSettings) }
-        } catch (e) {}
-      }
-
-      // We will load other data when currentUserId is set
       this.loadAllData()
 
       if (!this.isMockMode) {
         this.initSupabase()
       } else {
-        // Mock mode initialization
-        
-        // Listen for storage changes from other tabs
-        window.addEventListener('storage', (e) => {
-          if (e.key && e.key.startsWith('gacal_')) {
-            this.loadUsers()
-            this.loadAllData()
-            this.notify(false) // Don't save back during sync
-          }
-        })
-
         this.isInitialized = true
         this.notify()
       }
@@ -169,6 +147,7 @@ class Store {
   private loadUsers() {
     if (typeof window === 'undefined') return
     const saved = localStorage.getItem('gacal_users')
+    
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
@@ -178,16 +157,9 @@ class Store {
       } catch (e) {}
     }
     
-    // Ensure admin@gacal.com always exists
+    // Always ensure admin@gacal.com is in the list
     if (!this.users.some(u => u.email === 'admin@gacal.com')) {
-      this.users.unshift({ 
-        id: "1", 
-        name: "Admin", 
-        email: "admin@gacal.com", 
-        password: "admin123", 
-        role: "admin", 
-        isActive: true 
-      })
+      this.users.unshift(initialUsers[0])
     }
   }
 
@@ -242,7 +214,9 @@ class Store {
       localStorage.setItem(`gacal_sales${suffix}`, JSON.stringify(this.sales))
       localStorage.setItem(`gacal_customers${suffix}`, JSON.stringify(this.customers))
       localStorage.setItem(`gacal_expenses${suffix}`, JSON.stringify(this.expenses))
-      localStorage.setItem(`gacal_settings_${id}`, JSON.stringify(this.settings[id]))
+      if (this.settings[id]) {
+        localStorage.setItem(`gacal_settings_${id}`, JSON.stringify(this.settings[id]))
+      }
     }
   }
 
@@ -335,6 +309,7 @@ class Store {
 
   // Auth
   authenticate(email: string, password?: string): User | null {
+    this.loadUsers() // Load latest from storage
     if (this.isMockMode || true) { // Using mock users until Supabase Auth UI is fully integrated
       const user = this.users.find((u) => u.email === email && u.password === password)
       
@@ -368,7 +343,7 @@ class Store {
   }
 
   addUser(user: Omit<User, "id" | "parentId">): User {
-    const newUser: User = { ...user, id: crypto.randomUUID(), parentId: this.currentUserId || undefined }
+    const newUser: User = { ...user, id: Math.random().toString(36).substring(2), parentId: this.currentUserId || undefined }
     this.users.push(newUser)
     this.notify()
     return newUser
@@ -390,9 +365,10 @@ class Store {
     return true
   }
   register(name: string, email: string, password: string, businessName?: string, phone?: string, address?: string): User | null {
+    this.loadUsers() // Load latest from storage before checking existence
     if (this.users.some(u => u.email === email)) return null
     const newUser: User = {
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substring(2),
       name,
       email,
       password,
