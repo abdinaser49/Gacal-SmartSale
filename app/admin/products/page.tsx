@@ -13,9 +13,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { store, type Product } from "@/lib/store"
 import { Plus, Pencil, Trash2, Search, Package } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
+import { useAuth } from "@/lib/auth-context"
 
 
 export default function AdminProductsPage() {
+  const { user } = useAuth()
   const { t } = useLanguage()
   const [products, setProducts] = useState<Product[]>([])
 

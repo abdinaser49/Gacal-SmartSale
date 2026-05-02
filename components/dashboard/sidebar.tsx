@@ -32,7 +32,6 @@ export function Sidebar({ role }: SidebarProps) {
 
   const adminLinks = [
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard },
-    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
     { href: "/admin/products", label: t("products"), icon: Package },
     { href: "/admin/customers", label: t("customers") || "Customers", icon: UserCircle },
     { href: "/admin/sales", label: t("sales"), icon: Receipt },
@@ -44,7 +43,6 @@ export function Sidebar({ role }: SidebarProps) {
 
   const managerLinks = [
     { href: "/manager", label: t("dashboard"), icon: LayoutDashboard },
-    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
     { href: "/admin/products", label: t("products"), icon: Package },
     { href: "/manager/customers", label: t("customers") || "Customers", icon: UserCircle },
     { href: "/manager/sales", label: t("sales"), icon: BarChart3 },
@@ -53,7 +51,6 @@ export function Sidebar({ role }: SidebarProps) {
   ]
 
   const cashierLinks = [
-    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
     { href: "/admin/products", label: t("products"), icon: Package },
   ]
 
