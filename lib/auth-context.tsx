@@ -20,14 +20,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedUser = localStorage.getItem("gacal_user")
     if (savedUser) {
-      const parsedUser = JSON.parse(savedUser)
-      setUser(parsedUser)
-      store.setCurrentUserId(parsedUser.id)
+      try {
+        const parsedUser = JSON.parse(savedUser)
+        setUser(parsedUser)
+        store.setCurrentUserId(parsedUser.id)
+      } catch (e) {
+        localStorage.removeItem("gacal_user")
+      }
     }
     setIsLoading(false)
   }, [])
 
+  const login = async (email: string, password: string) => {
     try {
+      console.log("[v0] Attempting login with:", email)
       const authenticatedUser = store.authenticate(email, password)
       console.log("[v0] Auth result:", authenticatedUser)
       if (authenticatedUser) {
@@ -40,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       return { success: false, error: error.message }
     }
+  }
 
   const register = async (name: string, email: string, password: string, businessName: string, phone: string, address: string) => {
     const newUser = store.register(name, email, password, businessName, phone, address)

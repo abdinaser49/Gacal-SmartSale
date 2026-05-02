@@ -35,7 +35,7 @@ export default function UsersPage() {
     const updateUsers = () => setUsers(store.getUsers())
     updateUsers()
     const unsubscribe = store.subscribe(updateUsers)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +43,7 @@ export default function UsersPage() {
     if (editingUser) {
       store.updateUser(editingUser.id, formData)
     } else {
-      store.addUser(formData)
+      store.addUser({ ...formData, isActive: true })
     }
     resetForm()
   }
@@ -59,7 +59,7 @@ export default function UsersPage() {
     setFormData({
       name: user.name,
       email: user.email,
-      password: user.password,
+      password: user.password || "",
       role: user.role,
     })
     setIsDialogOpen(true)
