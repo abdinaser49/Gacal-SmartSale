@@ -69,6 +69,9 @@ export interface CompanySettings {
   logo: string
   phone: string
   address: string
+  currency: string
+  taxRate: number
+  receiptFooter: string
 }
 
 // Initial mock data
@@ -105,7 +108,10 @@ class Store {
     name: "GacalSolution",
     logo: "",
     phone: "+252 61 000 0000",
-    address: "Mogadishu, Somalia"
+    address: "Mogadishu, Somalia",
+    currency: "USD",
+    taxRate: 0,
+    receiptFooter: "Thank you for your business!"
   }
   private listeners: Set<() => void> = new Set()
   public isInitialized = false

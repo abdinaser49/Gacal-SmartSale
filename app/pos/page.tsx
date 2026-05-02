@@ -386,7 +386,7 @@ export default function POSPage() {
                </div>
 
                <div className="text-center mb-8">
-                 <h3 className="text-2xl font-bold tracking-widest text-gray-800">THANK YOU</h3>
+                 <h3 className="text-xl font-bold text-gray-800">{settings.receiptFooter || "THANK YOU"}</h3>
                </div>
 
                <div className="text-center">
