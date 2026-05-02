@@ -182,6 +182,7 @@ class Store {
         category: 'cat_electronics', // fallback category since real categories are UUID linked in db
         barcode: p.barcode || '',
         image: p.image_url || '',
+        userId: p.user_id || 'unknown',
         createdAt: new Date(p.created_at)
       }))
       this.notify()
