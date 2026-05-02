@@ -84,8 +84,15 @@ export function Sidebar({ role }: SidebarProps) {
         )}
       >
         <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center border-b px-6">
-            <h1 className="text-xl font-bold text-primary truncate">{settings.name || "GacalSolution"}</h1>
+          <div className="flex h-16 items-center border-b px-4 gap-3">
+            {settings.logo ? (
+              <img src={settings.logo} alt="Logo" className="h-9 w-9 rounded-lg object-contain bg-white shadow-sm border p-0.5" />
+            ) : (
+              <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs border">
+                {settings.name?.substring(0, 2).toUpperCase() || "GS"}
+              </div>
+            )}
+            <h1 className="text-base font-bold text-primary truncate">{settings.name || "GacalSolution"}</h1>
           </div>
 
           <nav className="flex-1 p-4">
