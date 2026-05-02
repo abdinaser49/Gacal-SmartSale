@@ -107,23 +107,24 @@ export function Sidebar({ role }: SidebarProps) {
             </ul>
           </nav>
 
-          <div className="border-t p-4">
+          <div className="border-t p-4 pb-12">
             <div className="mb-3 px-3">
               <p className="text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <Button
-                variant="ghost"
-                className="flex-1 justify-start gap-3 text-muted-foreground hover:text-foreground"
-                onClick={logout}
-              >
-                <LogOut className="h-4 w-4" />
-                {t("logout")}
-              </Button>
-              <LanguageSwitcher />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  variant="ghost"
+                  className="flex-1 justify-start gap-3 text-muted-foreground hover:text-foreground"
+                  onClick={logout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  {t("logout")}
+                </Button>
+                <LanguageSwitcher />
+              </div>
             </div>
-
           </div>
         </div>
       </aside>
