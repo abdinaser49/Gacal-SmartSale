@@ -280,7 +280,7 @@ class Store {
     this.notify()
     return true
   }
-  register(name: string, email: string, password: string): User | null {
+  register(name: string, email: string, password: string, businessName?: string, phone?: string, address?: string): User | null {
     if (this.users.some(u => u.email === email)) return null
     const newUser: User = {
       id: crypto.randomUUID(),
@@ -290,6 +290,20 @@ class Store {
       role: "admin"
     }
     this.users.push(newUser)
+    
+    // Initialize settings for this user
+    this.settings[newUser.id] = {
+      ...this.defaultSettings,
+      name: businessName || "My Store",
+      phone: phone || "",
+      address: address || ""
+    }
+    
+    // Persist user-specific settings
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`gacal_settings_${newUser.id}`, JSON.stringify(this.settings[newUser.id]))
+    }
+
     this.notify()
     return newUser
   }

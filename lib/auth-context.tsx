@@ -6,7 +6,7 @@ import { store, type User, type Role } from "./store"
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (name: string, email: string, password: string, businessName: string, phone: string, address: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   isLoading: boolean
 }
@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: "Invalid email or password" }
   }
 
-  const register = async (name: string, email: string, password: string) => {
-    const newUser = store.register(name, email, password)
+  const register = async (name: string, email: string, password: string, businessName: string, phone: string, address: string) => {
+    const newUser = store.register(name, email, password, businessName, phone, address)
     if (newUser) {
       setUser(newUser)
       store.setCurrentUserId(newUser.id)
