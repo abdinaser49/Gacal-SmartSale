@@ -22,7 +22,7 @@ export default function ExpensesPage() {
     const updateExpenses = () => setExpenses(store.getExpenses())
     updateExpenses()
     const unsubscribe = store.subscribe(updateExpenses)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const handleAddExpense = () => {

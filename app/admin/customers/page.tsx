@@ -22,7 +22,7 @@ export default function CustomersPage() {
     const updateCustomers = () => setCustomers(store.getCustomers())
     updateCustomers()
     const unsubscribe = store.subscribe(updateCustomers)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const handleAddCustomer = () => {

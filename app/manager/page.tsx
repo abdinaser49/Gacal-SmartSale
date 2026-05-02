@@ -28,7 +28,7 @@ export default function ManagerDashboard() {
 
     updateData()
     const unsubscribe = store.subscribe(updateData)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const todayRevenue = store.getTodayRevenue()

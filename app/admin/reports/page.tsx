@@ -29,7 +29,7 @@ export default function ReportsPage() {
     }
     updateMetrics()
     const unsubscribe = store.subscribe(updateMetrics)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   return (

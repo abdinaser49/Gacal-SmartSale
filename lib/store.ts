@@ -590,19 +590,19 @@ class Store {
   getTodayRevenue(): number {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return this.sales.filter((s) => s.createdAt >= today).reduce((sum, s) => sum + s.total, 0)
+    return this.getSales().filter((s) => s.createdAt >= today).reduce((sum, s) => sum + s.total, 0)
   }
 
   getTotalSales(): number {
-    return this.sales.reduce((sum, s) => sum + s.total, 0)
+    return this.getSales().reduce((sum, s) => sum + s.total, 0)
   }
 
   getTransactionCount(): number {
-    return this.sales.length
+    return this.getSales().length
   }
 
   getLowStockProducts(threshold = 10): Product[] {
-    return this.products.filter((p) => p.stock <= threshold)
+    return this.getProducts().filter((p) => p.stock <= threshold)
   }
 
   getSalesByDay(days = 7): { date: string; total: number }[] {
@@ -614,7 +614,7 @@ class Store {
       const nextDate = new Date(date)
       nextDate.setDate(nextDate.getDate() + 1)
 
-      const dayTotal = this.sales
+      const dayTotal = this.getSales()
         .filter((s) => s.createdAt >= date && s.createdAt < nextDate)
         .reduce((sum, s) => sum + s.total, 0)
 

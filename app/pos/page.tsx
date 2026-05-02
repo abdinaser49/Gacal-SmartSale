@@ -138,7 +138,7 @@ export default function POSPage() {
     setIsProcessing(false)
   }
 
-  const handleProductSubmit = (data: Omit<Product, "id" | "createdAt">) => {
+  const handleProductSubmit = (data: Omit<Product, "id" | "createdAt" | "userId">) => {
     if (editingProduct) {
       store.updateProduct(editingProduct.id, data)
     } else {

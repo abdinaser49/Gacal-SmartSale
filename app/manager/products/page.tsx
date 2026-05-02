@@ -27,7 +27,7 @@ export default function ManagerProductsPage() {
     const updateProducts = () => setProducts(store.getProducts())
     updateProducts()
     const unsubscribe = store.subscribe(updateProducts)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const filteredProducts = products.filter(
@@ -37,7 +37,7 @@ export default function ManagerProductsPage() {
       p.barcode?.includes(searchQuery),
   )
 
-  const handleSubmit = (data: Omit<Product, "id" | "createdAt">) => {
+  const handleSubmit = (data: Omit<Product, "id" | "createdAt" | "userId">) => {
     if (editingProduct) {
       store.updateProduct(editingProduct.id, data)
     } else {

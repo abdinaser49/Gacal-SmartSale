@@ -15,7 +15,7 @@ export default function ManagerSalesPage() {
     const updateSales = () => setSales(store.getSales())
     updateSales()
     const unsubscribe = store.subscribe(updateSales)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   return (

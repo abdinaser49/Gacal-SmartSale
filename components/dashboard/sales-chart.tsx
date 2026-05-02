@@ -31,8 +31,8 @@ export function SalesChart({ data }: SalesChartProps) {
                 axisLine={false}
                 tickFormatter={(value) => `$${value}`}
               />
-              <Tooltip
-                formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+                <Tooltip
+                formatter={(value: any) => [`$${Number(value).toFixed(2)}`, t("revenue") || "Revenue"]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",

@@ -25,7 +25,7 @@ export function Sidebar({ role }: SidebarProps) {
   useEffect(() => {
     const updateSettings = () => setSettings(store.getSettings())
     const unsubscribe = store.subscribe(updateSettings)
-    return () => unsubscribe()
+    return () => { unsubscribe() }
   }, [])
 
   const { t } = useLanguage()
