@@ -26,15 +26,22 @@ export default function POSPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("Cash")
-  const [amountPaid, setAmountPaid] = useState("")
+  const [payments, setPayments] = useState<{ method: string; amount: string }[]>([{ method: "Cash", amount: "" }])
+  const [customerId, setCustomerId] = useState<string>("none")
+  const [customers, setCustomers] = useState<any[]>([])
   const [lastSale, setLastSale] = useState<any>(null)
 
   useEffect(() => {
     const updateProducts = () => setProducts(store.getProducts())
+    const updateCustomers = () => setCustomers(store.getCustomers())
     updateProducts()
-    const unsubscribe = store.subscribe(updateProducts)
-    return () => unsubscribe()
+    updateCustomers()
+    const unsubscribe1 = store.subscribe(updateProducts)
+    const unsubscribe2 = store.subscribe(updateCustomers)
+    return () => {
+      unsubscribe1()
+      unsubscribe2()
+    }
   }, [])
 
   const categories = useMemo(() => {
@@ -85,8 +92,9 @@ export default function POSPage() {
 
   const handleCheckoutClick = () => {
     if (!user || cart.length === 0) return
-    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0) * 1.1
-    setAmountPaid(total.toFixed(2))
+    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0)
+    setPayments([{ method: "Cash", amount: total.toFixed(2) }])
+    setCustomerId("none")
     setShowCheckout(true)
   }
 
@@ -105,8 +113,8 @@ export default function POSPage() {
       price: item.price,
     }))
 
-    const paid = parseFloat(amountPaid) || 0
-    const sale = store.addSale(user.id, user.name, saleItems, paymentMethod, paid)
+    const parsedPayments = payments.map(p => ({ method: p.method, amount: parseFloat(p.amount) || 0 }))
+    const sale = store.addSale(user.id, user.name, saleItems, parsedPayments, customerId)
 
     if (sale) {
       setLastSale(sale)
@@ -200,34 +208,97 @@ export default function POSPage() {
               <DialogTitle>Complete Sale</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Payment Method</label>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="EVC Plus">EVC Plus</SelectItem>
-                    <SelectItem value="Edahab">Edahab</SelectItem>
-                    <SelectItem value="Jeeb">Jeeb</SelectItem>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Card">Card</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex justify-between font-bold text-lg border-b pb-2">
+                <span>Grand Total:</span>
+                <span>${cart.reduce((sum, item) => sum + item.price * item.qty, 0).toFixed(2)}</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Amount Received ($)</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                />
+              
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-medium">Payments</label>
+                {payments.map((p, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Select value={p.method} onValueChange={(val) => {
+                      const newP = [...payments]; newP[index].method = val; setPayments(newP);
+                    }}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="EVC Plus">EVC Plus</SelectItem>
+                        <SelectItem value="Edahab">Edahab</SelectItem>
+                        <SelectItem value="Jeeb">Jeeb</SelectItem>
+                        <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="Card">Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={p.amount}
+                      onChange={(e) => {
+                        const newP = [...payments]; newP[index].amount = e.target.value; setPayments(newP);
+                      }}
+                      className="flex-1"
+                      placeholder="0.00"
+                    />
+                    {payments.length > 1 && (
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        const newP = [...payments]; newP.splice(index, 1); setPayments(newP);
+                      }}>X</Button>
+                    )}
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setPayments([...payments, { method: "Cash", amount: "" }])}>
+                  + Add Split Payment
+                </Button>
               </div>
-              <Button onClick={handleProcessSale} disabled={isProcessing} className="mt-2 w-full">
-                {isProcessing ? t("processing") : "Confirm Payment"}
-              </Button>
+
+              {(() => {
+                const grandTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+                const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const remaining = grandTotal - totalPaid;
+
+                return (
+                  <>
+                    {remaining > 0.01 && (
+                      <div className="flex flex-col gap-2 mt-2 p-3 bg-red-50 text-red-900 rounded-md border border-red-200">
+                        <div className="flex justify-between font-bold text-sm">
+                          <span>Remaining (Debt):</span>
+                          <span>${remaining.toFixed(2)}</span>
+                        </div>
+                        <label className="text-sm font-medium mt-1">Assign to Customer</label>
+                        <Select value={customerId} onValueChange={setCustomerId}>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select Customer" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">-- Walk-in (No Debt Allowed) --</SelectItem>
+                            {customers.map(c => (
+                              <SelectItem key={c.id} value={c.id}>{c.name} ({c.phone})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {remaining < -0.01 && (
+                      <div className="flex justify-between font-bold text-green-600 border-t pt-2 mt-2">
+                        <span>Change to Return:</span>
+                        <span>${Math.abs(remaining).toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={handleProcessSale} 
+                      disabled={isProcessing || (remaining > 0.01 && customerId === "none")} 
+                      className="mt-4 w-full"
+                    >
+                      {isProcessing ? t("processing") : (remaining > 0.01 ? "Confirm Payment & Record Debt" : "Confirm Payment")}
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
           </DialogContent>
         </Dialog>
@@ -286,11 +357,19 @@ export default function POSPage() {
                <div className="border-t border-dashed border-gray-400 mb-4"></div>
 
                <div className="flex flex-col gap-1 text-gray-500 mb-12 text-sm">
-                 <div className="flex justify-between uppercase">
-                   <span>{lastSale.paymentMethod === 'Cash' ? 'Cash' : lastSale.paymentMethod}</span>
-                   <span>${lastSale.amountPaid.toFixed(2)}</span>
-                 </div>
-                 <div className="flex justify-between">
+                 {(lastSale.payments || [{method: lastSale.paymentMethod, amount: lastSale.amountPaid}]).map((p: any, idx: number) => (
+                   <div key={idx} className="flex justify-between uppercase">
+                     <span>{p.method}</span>
+                     <span>${p.amount.toFixed(2)}</span>
+                   </div>
+                 ))}
+                 {lastSale.customerId && lastSale.customerId !== 'none' && lastSale.total > lastSale.amountPaid && (
+                   <div className="flex justify-between uppercase font-bold text-gray-800 mt-1">
+                     <span>DEBT (UNPAID)</span>
+                     <span>${(lastSale.total - lastSale.amountPaid).toFixed(2)}</span>
+                   </div>
+                 )}
+                 <div className="flex justify-between mt-1 pt-1 border-t border-dashed border-gray-300">
                    <span>CHANGE</span>
                    <span>$ {lastSale.changeReturned.toFixed(2)}</span>
                  </div>

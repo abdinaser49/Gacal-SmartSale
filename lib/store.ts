@@ -46,9 +46,11 @@ export interface Sale {
   userName: string
   total: number
   paymentMethod: string
+  payments?: { method: string; amount: number }[]
   paymentStatus: string
   amountPaid: number
   changeReturned: number
+  customerId?: string
   items: SaleItem[]
   createdAt: Date
 }
@@ -162,7 +164,12 @@ class Store {
         id: s.id,
         userId: s.user_id || 'unknown',
         userName: 'User',
+        customerId: s.customer_id,
         total: Number(s.total_amount),
+        paymentMethod: s.payment_method || 'Cash',
+        amountPaid: Number(s.amount_paid) || 0,
+        changeReturned: Number(s.change_returned) || 0,
+        paymentStatus: s.payment_status || 'paid',
         items: (s.sale_items || []).map((i: any) => ({
           id: i.id,
           saleId: i.sale_id,
@@ -391,7 +398,7 @@ class Store {
     return [...this.sales].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
-  addSale(userId: string, userName: string, items: Omit<SaleItem, "id" | "saleId">[], paymentMethod: string = "Cash", amountPaid?: number): Sale | null {
+  addSale(userId: string, userName: string, items: Omit<SaleItem, "id" | "saleId">[], payments: { method: string, amount: number }[], customerId?: string): Sale | null {
     for (const item of items) {
       const product = this.products.find((p) => p.id === item.productId)
       if (!product || product.stock < item.qty) return null
@@ -405,20 +412,34 @@ class Store {
     }))
 
     const total = saleItems.reduce((sum, item) => sum + item.price * item.qty, 0)
-    const finalAmountPaid = amountPaid !== undefined ? amountPaid : total
+    const finalAmountPaid = payments.reduce((sum, p) => sum + p.amount, 0)
     const changeReturned = finalAmountPaid > total ? finalAmountPaid - total : 0
     const paymentStatus = finalAmountPaid >= total ? 'paid' : (finalAmountPaid > 0 ? 'partial' : 'pending')
+    
+    // Determine primary payment method name
+    const paymentMethod = payments.length > 1 ? 'Split' : (payments[0]?.method || 'Cash')
 
     for (const item of items) {
       this.reduceStock(item.productId, item.qty)
+    }
+
+    // Assign debt to customer if partial payment
+    if (finalAmountPaid < total && customerId && customerId !== "none") {
+      const debtAmount = total - finalAmountPaid;
+      const customer = this.customers.find(c => c.id === customerId);
+      if (customer) {
+        this.updateCustomer(customerId, { totalDebt: customer.totalDebt + debtAmount });
+      }
     }
 
     const sale: Sale = {
       id: saleId,
       userId,
       userName,
+      customerId,
       total,
       paymentMethod,
+      payments,
       paymentStatus,
       amountPaid: finalAmountPaid,
       changeReturned,
@@ -435,6 +456,7 @@ class Store {
         id: saleId,
         invoice_number: `INV-${Date.now()}`,
         total_amount: total,
+        customer_id: customerId !== "none" ? customerId : null,
         payment_method: paymentMethod,
         payment_status: paymentStatus,
         amount_paid: finalAmountPaid,
