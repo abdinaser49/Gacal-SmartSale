@@ -32,6 +32,7 @@ export interface Product {
   id: string
   name: string
   price: number
+  costPrice?: number
   stock: number
   image: string
   category: string
@@ -69,9 +70,9 @@ const initialUsers: User[] = [
 ]
 
 const initialProducts: Product[] = [
-  { id: "p1", name: "Laptop HP", price: 500, stock: 10, category: "cat_electronics", image: "", barcode: "123456789", createdAt: new Date() },
-  { id: "p2", name: "Wireless Mouse", price: 20, stock: 50, category: "cat_accessories", image: "", barcode: "987654321", createdAt: new Date() },
-  { id: "p3", name: "Notebook", price: 5, stock: 100, category: "cat_stationery", image: "", barcode: "111222333", createdAt: new Date() }
+  { id: "p1", name: "Laptop HP", price: 500, costPrice: 400, stock: 10, category: "cat_electronics", image: "", barcode: "123456789", createdAt: new Date() },
+  { id: "p2", name: "Wireless Mouse", price: 20, costPrice: 10, stock: 50, category: "cat_accessories", image: "", barcode: "987654321", createdAt: new Date() },
+  { id: "p3", name: "Notebook", price: 5, costPrice: 3, stock: 100, category: "cat_stationery", image: "", barcode: "111222333", createdAt: new Date() }
 ]
 
 const initialCustomers: Customer[] = [
@@ -142,6 +143,7 @@ class Store {
         id: p.id,
         name: p.name,
         price: Number(p.selling_price),
+        costPrice: p.cost_price ? Number(p.cost_price) : undefined,
         stock: p.stock_quantity,
         category: 'cat_electronics', // fallback category since real categories are UUID linked in db
         barcode: p.barcode || '',
@@ -238,6 +240,7 @@ class Store {
         id: newProduct.id,
         name: newProduct.name,
         selling_price: newProduct.price,
+        cost_price: newProduct.costPrice || 0,
         stock_quantity: newProduct.stock,
         barcode: newProduct.barcode,
         image_url: newProduct.image
@@ -260,6 +263,7 @@ class Store {
       const updatePayload: any = {}
       if (data.name) updatePayload.name = data.name
       if (data.price !== undefined) updatePayload.selling_price = data.price
+      if (data.costPrice !== undefined) updatePayload.cost_price = data.costPrice
       if (data.stock !== undefined) updatePayload.stock_quantity = data.stock
       if (data.barcode) updatePayload.barcode = data.barcode
       if (data.image) updatePayload.image_url = data.image

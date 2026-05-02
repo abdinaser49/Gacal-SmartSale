@@ -68,6 +68,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
 
   const [formData, setFormData] = useState({
     name: product?.name || "",
+    costPrice: product?.costPrice?.toString() || "",
     price: product?.price?.toString() || "",
     stock: product?.stock?.toString() || "",
     category: product?.category || "cat_electronics",
@@ -108,6 +109,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
     e.preventDefault()
     onSubmit({
       name: formData.name,
+      costPrice: Number.parseFloat(formData.costPrice) || 0,
       price: Number.parseFloat(formData.price),
       stock: Number.parseInt(formData.stock),
       category: formData.category,
@@ -132,7 +134,22 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="costPrice" className="text-sm">
+            {t("cost_price")} ($)
+          </Label>
+          <Input
+            id="costPrice"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.costPrice}
+            onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+            required
+            className="h-8 text-sm"
+          />
+        </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="price" className="text-sm">
             {t("price")} ($)
