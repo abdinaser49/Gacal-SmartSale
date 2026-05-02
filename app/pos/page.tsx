@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { ProtectedRoute } from "@/components/protected-route"
 import { ProductGrid } from "@/components/pos/product-grid"
+import { ProductForm } from "@/components/products/product-form"
 import { Cart, type CartItem } from "@/components/pos/cart"
 import { useAuth } from "@/lib/auth-context"
 import { store, type Product } from "@/lib/store"
@@ -11,7 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Search, LogOut, CheckCircle, Printer, Package } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Search, LogOut, CheckCircle, Printer, Package, Plus, Pencil, Trash2 } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 
@@ -32,6 +34,9 @@ export default function POSPage() {
   const [customers, setCustomers] = useState<any[]>([])
   const [settings, setSettings] = useState(() => store.getSettings())
   const [lastSale, setLastSale] = useState<any>(null)
+  const [isProductListOpen, setIsProductListOpen] = useState(false)
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
 
   useEffect(() => {
     const updateProducts = () => setProducts(store.getProducts())
@@ -132,6 +137,22 @@ export default function POSPage() {
     setIsProcessing(false)
   }
 
+  const handleProductSubmit = (data: Omit<Product, "id" | "createdAt">) => {
+    if (editingProduct) {
+      store.updateProduct(editingProduct.id, data)
+    } else {
+      store.addProduct(data)
+    }
+    setIsAddProductOpen(false)
+    setEditingProduct(null)
+  }
+
+  const handleDeleteProduct = (id: string) => {
+    if (confirm(t("confirm_delete"))) {
+      store.deleteProduct(id)
+    }
+  }
+
   return (
     <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
       <div className="flex h-screen flex-col bg-muted/30">
@@ -150,12 +171,18 @@ export default function POSPage() {
               {t("welcome")}, <span className="font-medium text-foreground">{user?.name}</span>
             </span>
             <LanguageSwitcher />
-            <Link href="/admin/products" className="print:hidden">
-              <Button variant="outline" size="sm">
+            
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsProductListOpen(true)}>
                 <Package className="mr-2 h-4 w-4" />
-                Manage Products
+                Inventory
               </Button>
-            </Link>
+              <Button variant="outline" size="sm" onClick={() => setIsAddProductOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </div>
+
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               {t("logout")}
@@ -407,6 +434,66 @@ export default function POSPage() {
              </div>
            </div>
         )}
+        {/* Product List Dialog */}
+        <Dialog open={isProductListOpen} onOpenChange={setIsProductListOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle className="flex justify-between items-center">
+                <span>Product Inventory</span>
+                <Button size="sm" onClick={() => { setIsProductListOpen(false); setIsAddProductOpen(true); }}>
+                  <Plus className="w-4 h-4 mr-2" /> Add New
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell>{p.category}</TableCell>
+                      <TableCell className="text-right">${p.price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{p.stock}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setIsAddProductOpen(true); }}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteProduct(p.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add/Edit Product Dialog */}
+        <Dialog open={isAddProductOpen} onOpenChange={(open) => { setIsAddProductOpen(open); if (!open) setEditingProduct(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+            </DialogHeader>
+            <ProductForm 
+              product={editingProduct || undefined} 
+              onSubmit={handleProductSubmit} 
+              onCancel={() => setIsAddProductOpen(false)} 
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   )
