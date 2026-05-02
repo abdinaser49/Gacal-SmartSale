@@ -8,6 +8,7 @@ export interface User {
   email: string
   password?: string
   role: Role
+  parentId?: string
 }
 
 export interface Customer {
@@ -255,11 +256,16 @@ class Store {
   }
 
   getUsers(): User[] {
-    return [...this.users]
+    if (this.currentUserId === 'admin@gacal.com') {
+      return [...this.users]
+    }
+    if (!this.currentUserId) return []
+    // Regular admins see themselves and their sub-users
+    return this.users.filter((u) => u.id === this.currentUserId || u.parentId === this.currentUserId)
   }
 
-  addUser(user: Omit<User, "id">): User {
-    const newUser = { ...user, id: crypto.randomUUID() }
+  addUser(user: Omit<User, "id" | "parentId">): User {
+    const newUser: User = { ...user, id: crypto.randomUUID(), parentId: this.currentUserId || undefined }
     this.users.push(newUser)
     this.notify()
     return newUser
