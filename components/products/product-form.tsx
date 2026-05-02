@@ -15,7 +15,7 @@ import { translations } from "@/lib/translations"
 
 interface ProductFormProps {
   product?: Product
-  onSubmit: (data: Omit<Product, "id" | "createdAt">) => void
+  onSubmit: (data: Omit<Product, "id" | "createdAt" | "userId">) => void
   onCancel: () => void
 }
 

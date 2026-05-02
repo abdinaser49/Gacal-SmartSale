@@ -42,7 +42,7 @@ export default function AdminProductsPage() {
       p.barcode?.includes(searchQuery),
   )
 
-  const handleSubmit = (data: Omit<Product, "id" | "createdAt">) => {
+  const handleSubmit = (data: Omit<Product, "id" | "createdAt" | "userId">) => {
     if (editingProduct) {
       store.updateProduct(editingProduct.id, data)
     } else {
