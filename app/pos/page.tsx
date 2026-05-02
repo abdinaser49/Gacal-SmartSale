@@ -502,7 +502,6 @@ export default function POSPage() {
             />
           </DialogContent>
         </Dialog>
-      </div>
         </main>
       </div>
     </ProtectedRoute>
