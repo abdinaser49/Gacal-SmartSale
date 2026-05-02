@@ -107,7 +107,7 @@ export function Sidebar({ role }: SidebarProps) {
             </ul>
           </nav>
 
-          <div className="border-t p-4 pb-12">
+          <div className="border-t p-4 pb-24">
             <div className="mb-3 px-3">
               <p className="text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
