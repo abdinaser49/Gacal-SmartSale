@@ -63,23 +63,40 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="companyLogo">Logo URL (Optional)</Label>
+                <Label htmlFor="companyLogo">Company Logo</Label>
                 <div className="flex gap-4 items-center">
                   {settings.logo ? (
-                    <img src={settings.logo} alt="Logo preview" className="w-12 h-12 rounded-md object-contain border" />
+                    <img src={settings.logo} alt="Logo preview" className="w-12 h-12 rounded-md object-contain border bg-white" />
                   ) : (
                     <div className="w-12 h-12 rounded-md border flex items-center justify-center bg-muted text-muted-foreground font-bold text-xl">
                       {settings.name.substring(0, 2).toUpperCase() || "GS"}
                     </div>
                   )}
-                  <Input 
-                    id="companyLogo" 
-                    value={settings.logo} 
-                    onChange={(e) => setSettings({...settings, logo: e.target.value})} 
-                    placeholder="https://example.com/logo.png"
-                  />
+                  <div className="flex-1 flex gap-2">
+                    <Input 
+                      id="companyLogo" 
+                      type="file"
+                      accept="image/*"
+                      className="cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setSettings({...settings, logo: reader.result as string});
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }} 
+                    />
+                    {settings.logo && (
+                      <Button variant="outline" type="button" onClick={() => setSettings({...settings, logo: ""})}>
+                        Remove
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Paste an image URL to use as your logo. Leave blank to use initials.</p>
+                <p className="text-xs text-muted-foreground">Upload an image to use as your logo. Leave blank to use initials.</p>
               </div>
 
               <div className="space-y-2">
