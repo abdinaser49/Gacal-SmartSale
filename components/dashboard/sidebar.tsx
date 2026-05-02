@@ -38,7 +38,7 @@ export function Sidebar({ role }: SidebarProps) {
     { href: "/admin/sales", label: t("sales"), icon: Receipt },
     { href: "/admin/expenses", label: t("expenses") || "Expenses", icon: Receipt },
     { href: "/admin/reports", label: t("reports") || "Reports", icon: FileText },
-    { href: "/admin/users", label: t("users"), icon: Users },
+    { href: "/admin/users", label: user?.email === "admin@gacal.com" ? "System Management" : t("users"), icon: Users },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ]
 

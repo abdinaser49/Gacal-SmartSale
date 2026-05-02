@@ -120,7 +120,7 @@ class Store {
     taxRate: 0,
     receiptFooter: "Thank you for your business!"
   }
-  private listeners: Set<() => void> = new Set()
+  private subscribers: Set<() => void> = new Set()
   private currentUserId: string | null = null
   public isInitialized = false
 
@@ -155,6 +155,26 @@ class Store {
         this.initSupabase()
       } else {
         // Mock mode initialization
+        
+        // Listen for storage changes from other tabs
+        window.addEventListener('storage', (e) => {
+          if (e.key && e.key.startsWith('gacal_')) {
+            this.loadAllData()
+            
+            const savedUsers = localStorage.getItem('gacal_users')
+            if (savedUsers) {
+              try {
+                this.users = JSON.parse(savedUsers)
+                // Ensure admin@gacal.com is ALWAYS there
+                if (!this.users.some(u => u.email === 'admin@gacal.com')) {
+                  this.users.push(initialUsers[0])
+                }
+              } catch (e) {}
+            }
+            this.notify(false) // Don't save back during sync
+          }
+        })
+
         this.isInitialized = true
         this.notify()
       }
@@ -286,14 +306,14 @@ class Store {
     }
   }
 
-  subscribe(listener: () => void) {
-    this.listeners.add(listener)
-    return () => this.listeners.delete(listener)
+  private notify(shouldSave = true) {
+    if (shouldSave) this.saveAllData()
+    this.subscribers.forEach((callback) => callback())
   }
 
-  private notify() {
-    this.saveAllData()
-    this.listeners.forEach((listener) => listener())
+  subscribe(callback: () => void) {
+    this.subscribers.add(callback)
+    return () => { this.subscribers.delete(callback) }
   }
 
   setCurrentUserId(id: string | null) {
