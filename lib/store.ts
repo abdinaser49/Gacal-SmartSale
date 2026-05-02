@@ -16,6 +16,7 @@ export interface Customer {
   phone: string
   address?: string
   totalDebt: number
+  userId: string
   createdAt: Date
 }
 
@@ -25,6 +26,7 @@ export interface Expense {
   amount: number
   category: string
   date: Date
+  userId: string
   createdAt: Date
 }
 
@@ -37,6 +39,7 @@ export interface Product {
   image: string
   category: string
   barcode?: string
+  userId: string
   createdAt: Date
 }
 
@@ -82,19 +85,19 @@ const initialUsers: User[] = [
 ]
 
 const initialProducts: Product[] = [
-  { id: "p1", name: "Laptop HP", price: 500, costPrice: 400, stock: 10, category: "cat_electronics", image: "", barcode: "123456789", createdAt: new Date() },
-  { id: "p2", name: "Wireless Mouse", price: 20, costPrice: 10, stock: 50, category: "cat_accessories", image: "", barcode: "987654321", createdAt: new Date() },
-  { id: "p3", name: "Notebook", price: 5, costPrice: 3, stock: 100, category: "cat_stationery", image: "", barcode: "111222333", createdAt: new Date() }
+  { id: "p1", name: "Laptop HP", price: 500, costPrice: 400, stock: 10, category: "cat_electronics", image: "", barcode: "123456789", userId: "1", createdAt: new Date() },
+  { id: "p2", name: "Wireless Mouse", price: 20, costPrice: 10, stock: 50, category: "cat_accessories", image: "", barcode: "987654321", userId: "1", createdAt: new Date() },
+  { id: "p3", name: "Notebook", price: 5, costPrice: 3, stock: 100, category: "cat_stationery", image: "", barcode: "111222333", userId: "1", createdAt: new Date() }
 ]
 
 const initialCustomers: Customer[] = [
-  { id: "c1", name: "Ahmed Ali", phone: "0612345678", address: "Mogadishu", totalDebt: 0, createdAt: new Date() },
-  { id: "c2", name: "Fatima Noor", phone: "0618765432", address: "Hargeisa", totalDebt: 50, createdAt: new Date() }
+  { id: "c1", name: "Ahmed Ali", phone: "0612345678", address: "Mogadishu", totalDebt: 0, userId: "1", createdAt: new Date() },
+  { id: "c2", name: "Fatima Noor", phone: "0618765432", address: "Hargeisa", totalDebt: 50, userId: "1", createdAt: new Date() }
 ]
 
 const initialExpenses: Expense[] = [
-  { id: "e1", title: "Office Rent", amount: 200, category: "Rent", date: new Date(), createdAt: new Date() },
-  { id: "e2", title: "Electricity", amount: 30, category: "Utilities", date: new Date(), createdAt: new Date() }
+  { id: "e1", title: "Office Rent", amount: 200, category: "Rent", date: new Date(), userId: "1", createdAt: new Date() },
+  { id: "e2", title: "Electricity", amount: 30, category: "Utilities", date: new Date(), userId: "1", createdAt: new Date() }
 ]
 
 // Global state management connected to Supabase
@@ -114,6 +117,7 @@ class Store {
     receiptFooter: "Thank you for your business!"
   }
   private listeners: Set<() => void> = new Set()
+  private currentUserId: string | null = null
   public isInitialized = false
 
   private get isMockMode() {
@@ -219,6 +223,11 @@ class Store {
     this.listeners.forEach((listener) => listener())
   }
 
+  setCurrentUserId(id: string | null) {
+    this.currentUserId = id
+    this.notify()
+  }
+
   // Auth
   authenticate(email: string, password?: string): User | null {
     if (this.isMockMode || true) { // Using mock users until Supabase Auth UI is fully integrated
@@ -268,15 +277,16 @@ class Store {
   }
   // Products
   getProducts(): Product[] {
-    return [...this.products]
+    if (!this.currentUserId) return []
+    return this.products.filter(p => p.userId === this.currentUserId)
   }
 
   getProduct(id: string): Product | undefined {
     return this.products.find((p) => p.id === id)
   }
 
-  addProduct(product: Omit<Product, "id" | "createdAt">): Product {
-    const newProduct = { ...product, id: crypto.randomUUID(), createdAt: new Date() }
+  addProduct(product: Omit<Product, "id" | "createdAt" | "userId">): Product {
+    const newProduct: Product = { ...product, id: crypto.randomUUID(), createdAt: new Date(), userId: this.currentUserId || 'unknown' }
     this.products.push(newProduct) // optimistic update
     this.notify()
 
@@ -353,11 +363,14 @@ class Store {
 
   // Customers
   getCustomers(): Customer[] {
-    return [...this.customers].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    if (!this.currentUserId) return []
+    return this.customers
+      .filter(c => c.userId === this.currentUserId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
-  addCustomer(customer: Omit<Customer, "id" | "createdAt" | "totalDebt">): Customer {
-    const newCustomer = { ...customer, id: crypto.randomUUID(), totalDebt: 0, createdAt: new Date() }
+  addCustomer(customer: Omit<Customer, "id" | "createdAt" | "totalDebt" | "userId">): Customer {
+    const newCustomer: Customer = { ...customer, id: crypto.randomUUID(), totalDebt: 0, createdAt: new Date(), userId: this.currentUserId || 'unknown' }
     this.customers.push(newCustomer)
     this.notify()
     if (!this.isMockMode) {
@@ -401,11 +414,14 @@ class Store {
 
   // Expenses
   getExpenses(): Expense[] {
-    return [...this.expenses].sort((a, b) => b.date.getTime() - a.date.getTime())
+    if (!this.currentUserId) return []
+    return this.expenses
+      .filter(e => e.userId === this.currentUserId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
   }
 
-  addExpense(expense: Omit<Expense, "id" | "createdAt">): Expense {
-    const newExpense = { ...expense, id: crypto.randomUUID(), createdAt: new Date() }
+  addExpense(expense: Omit<Expense, "id" | "createdAt" | "userId">): Expense {
+    const newExpense: Expense = { ...expense, id: crypto.randomUUID(), createdAt: new Date(), userId: this.currentUserId || 'unknown' }
     this.expenses.push(newExpense)
     this.notify()
     if (!this.isMockMode) {
@@ -433,7 +449,10 @@ class Store {
 
   // Sales
   getSales(): Sale[] {
-    return [...this.sales].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    if (!this.currentUserId) return []
+    return this.sales
+      .filter(s => s.userId === this.currentUserId || s.userId === 'unknown') // also show sales for sub-users if needed
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
   addSale(userId: string, userName: string, items: Omit<SaleItem, "id" | "saleId">[], payments: { method: string, amount: number }[], customerId?: string): Sale | null {

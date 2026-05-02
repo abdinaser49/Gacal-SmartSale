@@ -18,7 +18,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    localStorage.removeItem("gacal_user")
+    const savedUser = localStorage.getItem("gacal_user")
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser)
+      setUser(parsedUser)
+      store.setCurrentUserId(parsedUser.id)
+    }
     setIsLoading(false)
   }, [])
 
@@ -28,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("[v0] Auth result:", authenticatedUser)
     if (authenticatedUser) {
       setUser(authenticatedUser)
+      store.setCurrentUserId(authenticatedUser.id)
       localStorage.setItem("gacal_user", JSON.stringify(authenticatedUser))
       return { success: true }
     }
@@ -38,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const newUser = store.register(name, email, password)
     if (newUser) {
       setUser(newUser)
+      store.setCurrentUserId(newUser.id)
       localStorage.setItem("gacal_user", JSON.stringify(newUser))
       return { success: true }
     }
@@ -46,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
+    store.setCurrentUserId(null)
     localStorage.removeItem("gacal_user")
   }
 
