@@ -29,18 +29,23 @@ export default function POSPage() {
   const [payments, setPayments] = useState<{ method: string; amount: string }[]>([{ method: "Cash", amount: "" }])
   const [customerId, setCustomerId] = useState<string>("none")
   const [customers, setCustomers] = useState<any[]>([])
+  const [settings, setSettings] = useState(() => store.getSettings())
   const [lastSale, setLastSale] = useState<any>(null)
 
   useEffect(() => {
     const updateProducts = () => setProducts(store.getProducts())
     const updateCustomers = () => setCustomers(store.getCustomers())
+    const updateSettings = () => setSettings(store.getSettings())
     updateProducts()
     updateCustomers()
+    updateSettings()
     const unsubscribe1 = store.subscribe(updateProducts)
     const unsubscribe2 = store.subscribe(updateCustomers)
+    const unsubscribe3 = store.subscribe(updateSettings)
     return () => {
       unsubscribe1()
       unsubscribe2()
+      unsubscribe3()
     }
   }, [])
 
@@ -138,7 +143,7 @@ export default function POSPage() {
         `}} />
         {/* Header */}
         <header className="flex items-center justify-between border-b bg-card px-4 py-3 print:hidden">
-          <h1 className="text-xl font-bold text-primary">GacalSolution POS</h1>
+          <h1 className="text-xl font-bold text-primary truncate max-w-[200px]">{settings.name || "GacalSolution"} POS</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               {t("welcome")}, <span className="font-medium text-foreground">{user?.name}</span>
@@ -326,13 +331,18 @@ export default function POSPage() {
              <div className="text-gray-800 p-6 text-[13px] font-sans w-[80mm] mx-auto bg-[#f5f5f5] shadow-sm">
                <div className="text-center mb-4">
                  <div className="flex justify-center mb-2">
-                   <div className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                     GS
-                   </div>
+                   {settings.logo ? (
+                     <img src={settings.logo} alt="Logo" className="w-12 h-12 rounded-full object-contain bg-white" />
+                   ) : (
+                     <div className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center font-bold text-xl">
+                       {settings.name ? settings.name.substring(0, 2).toUpperCase() : "GS"}
+                     </div>
+                   )}
                  </div>
-                 <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800">GacalSolution</h2>
-                 <p className="text-[11px] text-gray-500 mb-4">Business Management System</p>
-                 <h3 className="text-2xl font-bold tracking-widest text-gray-800">RECEIPT</h3>
+                 <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800">{settings.name || "GacalSolution"}</h2>
+                 {settings.address && <p className="text-[11px] text-gray-500">{settings.address}</p>}
+                 {settings.phone && <p className="text-[11px] text-gray-500 mb-2">{settings.phone}</p>}
+                 <h3 className="text-2xl font-bold tracking-widest text-gray-800 mt-2">RECEIPT</h3>
                </div>
 
                <div className="border-t-2 border-dashed border-gray-400 mb-1"></div>

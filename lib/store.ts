@@ -64,6 +64,13 @@ export interface SaleItem {
   price: number
 }
 
+export interface CompanySettings {
+  name: string
+  logo: string
+  phone: string
+  address: string
+}
+
 // Initial mock data
 const initialUsers: User[] = [
   { id: "1", name: "Admin", email: "admin@gacal.com", password: "admin123", role: "admin" },
@@ -94,6 +101,12 @@ class Store {
   private sales: Sale[] = []
   private customers: Customer[] = initialCustomers
   private expenses: Expense[] = initialExpenses
+  private settings: CompanySettings = {
+    name: "GacalSolution",
+    logo: "",
+    phone: "+252 61 000 0000",
+    address: "Mogadishu, Somalia"
+  }
   private listeners: Set<() => void> = new Set()
   public isInitialized = false
 
@@ -105,6 +118,13 @@ class Store {
   constructor() {
     // Initialize data from Supabase asynchronously if on client side
     if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('gacal_settings')
+      if (savedSettings) {
+        try {
+          this.settings = { ...this.settings, ...JSON.parse(savedSettings) }
+        } catch (e) {}
+      }
+
       if (!this.isMockMode) {
         this.initSupabase()
       } else {
@@ -523,6 +543,19 @@ class Store {
       })
     }
     return result
+  }
+
+  // Settings
+  getSettings(): CompanySettings {
+    return { ...this.settings }
+  }
+
+  updateSettings(data: Partial<CompanySettings>) {
+    this.settings = { ...this.settings, ...data }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gacal_settings', JSON.stringify(this.settings))
+    }
+    this.notify()
   }
 }
 

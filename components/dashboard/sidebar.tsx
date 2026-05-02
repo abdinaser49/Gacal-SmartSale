@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, Users, ShoppingCart, BarChart3, LogOut, Menu, X, UserCircle, Receipt, FileText } from "lucide-react"
-import { useState } from "react"
+import { LayoutDashboard, Package, Users, ShoppingCart, BarChart3, LogOut, Menu, X, UserCircle, Receipt, FileText, Settings } from "lucide-react"
+import { useState, useEffect } from "react"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { store } from "@/lib/store"
 
 
 interface SidebarProps {
@@ -19,6 +20,13 @@ export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [settings, setSettings] = useState(() => store.getSettings())
+
+  useEffect(() => {
+    const updateSettings = () => setSettings(store.getSettings())
+    const unsubscribe = store.subscribe(updateSettings)
+    return () => unsubscribe()
+  }, [])
 
   const { t } = useLanguage()
 
@@ -30,6 +38,7 @@ export function Sidebar({ role }: SidebarProps) {
     { href: "/admin/expenses", label: t("expenses") || "Expenses", icon: Receipt },
     { href: "/admin/reports", label: t("reports") || "Reports", icon: FileText },
     { href: "/admin/users", label: t("users"), icon: Users },
+    { href: "/admin/settings", label: "Settings", icon: Settings },
   ]
 
   const managerLinks = [
@@ -73,7 +82,7 @@ export function Sidebar({ role }: SidebarProps) {
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center border-b px-6">
-            <h1 className="text-xl font-bold text-primary">GacalSolution</h1>
+            <h1 className="text-xl font-bold text-primary truncate">{settings.name || "GacalSolution"}</h1>
           </div>
 
           <nav className="flex-1 p-4">
