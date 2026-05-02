@@ -6,6 +6,7 @@ import { store, type User, type Role } from "./store"
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   isLoading: boolean
 }
@@ -33,12 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: "Invalid email or password" }
   }
 
+  const register = async (name: string, email: string, password: string) => {
+    const newUser = store.register(name, email, password)
+    if (newUser) {
+      setUser(newUser)
+      localStorage.setItem("gacal_user", JSON.stringify(newUser))
+      return { success: true }
+    }
+    return { success: false, error: "Email already exists" }
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem("gacal_user")
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

@@ -253,7 +253,19 @@ class Store {
     this.notify()
     return true
   }
-
+  register(name: string, email: string, password: string): User | null {
+    if (this.users.some(u => u.email === email)) return null
+    const newUser: User = {
+      id: crypto.randomUUID(),
+      name,
+      email,
+      password,
+      role: "admin"
+    }
+    this.users.push(newUser)
+    this.notify()
+    return newUser
+  }
   // Products
   getProducts(): Product[] {
     return [...this.products]
