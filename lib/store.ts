@@ -10,6 +10,7 @@ export interface User {
   role: Role
   parentId?: string
   isActive: boolean
+  subscriptionExpiry?: string // ISO date string
 }
 
 export interface Customer {
@@ -305,8 +306,21 @@ class Store {
   authenticate(email: string, password?: string): User | null {
     if (this.isMockMode || true) { // Using mock users until Supabase Auth UI is fully integrated
       const user = this.users.find((u) => u.email === email && u.password === password)
-      if (user && !user.isActive && email !== 'admin@gacal.com') {
-        throw new Error("ACCOUNT_LOCKED")
+      
+      if (user && email !== 'admin@gacal.com') {
+        // Check subscription expiry
+        if (user.subscriptionExpiry) {
+          const expiry = new Date(user.subscriptionExpiry)
+          if (expiry < new Date()) {
+            user.isActive = false // Auto-lock on expiry
+            this.notify()
+            throw new Error("SUBSCRIPTION_EXPIRED")
+          }
+        }
+
+        if (!user.isActive) {
+          throw new Error("ACCOUNT_LOCKED")
+        }
       }
       return user || null
     }
@@ -352,7 +366,8 @@ class Store {
       email,
       password,
       role: "admin",
-      isActive: true // Default to active, Super Admin can lock later
+      isActive: true,
+      subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 1 month trial
     }
     this.users.push(newUser)
     

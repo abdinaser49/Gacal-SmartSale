@@ -52,6 +52,8 @@ export function LoginForm() {
     } else {
       if (result.error === "ACCOUNT_LOCKED") {
         setError("Account-kaaga waa xiran yahay. Fadlan la xiriir maamulka (admin@gacal.com).")
+      } else if (result.error === "SUBSCRIPTION_EXPIRED") {
+        setError("Muddadii kirada (Subscription) waa kaa dhamaatay. Fadlan bixi $5 si aad dib ugu bilowdo.")
       } else {
         setError(result.error || t("login_failed"))
       }

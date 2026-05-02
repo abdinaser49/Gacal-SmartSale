@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { store, type User, type Role } from "@/lib/store"
 import { useAuth } from "@/lib/auth-context"
-import { Plus, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react"
+import { Plus, Pencil, Trash2, CheckCircle2, XCircle, Calendar, RefreshCw } from "lucide-react"
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth()
@@ -74,6 +74,17 @@ export default function UsersPage() {
   const toggleStatus = (user: User) => {
     if (!isSuperAdmin) return
     store.updateUser(user.id, { isActive: !user.isActive })
+  }
+
+  const renewSubscription = (user: User) => {
+    if (!isSuperAdmin) return
+    const currentExpiry = user.subscriptionExpiry ? new Date(user.subscriptionExpiry) : new Date()
+    // Add 30 days
+    const newExpiry = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000)
+    store.updateUser(user.id, { 
+      subscriptionExpiry: newExpiry.toISOString(),
+      isActive: true // Auto-unlock on renewal
+    })
   }
 
   const getRoleBadgeVariant = (role: Role) => {
@@ -173,6 +184,7 @@ export default function UsersPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Expiry</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -195,15 +207,40 @@ export default function UsersPage() {
                             user.isActive ? "text-green-600 hover:text-green-700" : "text-destructive hover:text-destructive/80"
                           )}
                         >
-                          {user.isActive ? (
+                            {user.isActive ? (
                             <><CheckCircle2 className="h-4 w-4" /> Active</>
                           ) : (
                             <><XCircle className="h-4 w-4" /> Locked</>
                           )}
                         </Button>
                       </TableCell>
+                      <TableCell>
+                        {user.subscriptionExpiry ? (
+                          <div className={cn(
+                            "flex items-center gap-2 text-sm",
+                            new Date(user.subscriptionExpiry) < new Date() ? "text-destructive font-bold" : "text-muted-foreground"
+                          )}>
+                            <Calendar className="h-3.5 w-3.5" />
+                            {new Date(user.subscriptionExpiry).toLocaleDateString()}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No Plan</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {isSuperAdmin && user.email !== 'admin@gacal.com' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => renewSubscription(user)}
+                              title="Renew 30 Days"
+                              className="h-8 px-2 text-primary border-primary/20 hover:bg-primary/5"
+                            >
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              $5
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(user)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
