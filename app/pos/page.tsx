@@ -132,7 +132,7 @@ export default function POSPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["cashier"]}>
+    <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
       <div className="flex h-screen flex-col bg-muted/30">
         <style dangerouslySetInnerHTML={{__html: `
           @page { size: auto; margin: 0mm; }

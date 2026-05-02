@@ -32,9 +32,10 @@ export function Sidebar({ role }: SidebarProps) {
 
   const adminLinks = [
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
     { href: "/admin/products", label: t("products"), icon: Package },
     { href: "/admin/customers", label: t("customers") || "Customers", icon: UserCircle },
-    { href: "/admin/sales", label: t("sales"), icon: ShoppingCart },
+    { href: "/admin/sales", label: t("sales"), icon: Receipt },
     { href: "/admin/expenses", label: t("expenses") || "Expenses", icon: Receipt },
     { href: "/admin/reports", label: t("reports") || "Reports", icon: FileText },
     { href: "/admin/users", label: t("users"), icon: Users },
@@ -43,6 +44,7 @@ export function Sidebar({ role }: SidebarProps) {
 
   const managerLinks = [
     { href: "/manager", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
     { href: "/manager/products", label: t("products"), icon: Package },
     { href: "/manager/customers", label: t("customers") || "Customers", icon: UserCircle },
     { href: "/manager/sales", label: t("sales"), icon: BarChart3 },
