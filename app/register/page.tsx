@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, Loader2, UserPlus } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -56,10 +55,10 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive animate-in fade-in slide-in-from-top-2 duration-300">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+                {error}
+              </div>
             )}
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
