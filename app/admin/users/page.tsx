@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { store, type User, type Role } from "@/lib/store"
 import { useAuth } from "@/lib/auth-context"
-import { Plus, Pencil, Trash2, CheckCircle2, XCircle, Calendar, RefreshCw } from "lucide-react"
+import { Plus, Pencil, Trash2, CheckCircle2, XCircle, Calendar, RefreshCw, Users as UsersIcon, UserCheck, UserX, Clock } from "lucide-react"
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth()
@@ -171,6 +171,53 @@ export default function UsersPage() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {isSuperAdmin && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">Total Merchants</CardTitle>
+                  <UsersIcon className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{users.length}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-green-50 border-green-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
+                  <UserCheck className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {users.filter(u => u.isActive && (!u.subscriptionExpiry || new Date(u.subscriptionExpiry) > new Date())).length}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50 border-red-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">Expired/Locked</CardTitle>
+                  <UserX className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {users.filter(u => !u.isActive || (u.subscriptionExpiry && new Date(u.subscriptionExpiry) < new Date())).length}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-orange-50 border-orange-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">System Revenue</CardTitle>
+                  <Clock className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">
+                    ${(users.length * 5).toFixed(2)} / mo
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Card>
             <CardHeader>
