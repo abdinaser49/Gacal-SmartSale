@@ -9,6 +9,7 @@ export interface User {
   password?: string
   role: Role
   parentId?: string
+  isActive: boolean
 }
 
 export interface Customer {
@@ -80,9 +81,9 @@ export interface CompanySettings {
 
 // Initial mock data
 const initialUsers: User[] = [
-  { id: "1", name: "Admin", email: "admin@gacal.com", password: "admin123", role: "admin" },
-  { id: "2", name: "Manager", email: "manager@gacal.com", password: "manager123", role: "manager" },
-  { id: "3", name: "Cashier", email: "cashier@gacal.com", password: "cashier123", role: "cashier" },
+  { id: "1", name: "Admin", email: "admin@gacal.com", password: "admin123", role: "admin", isActive: true },
+  { id: "2", name: "Manager", email: "manager@gacal.com", password: "manager123", role: "manager", isActive: true },
+  { id: "3", name: "Cashier", email: "cashier@gacal.com", password: "cashier123", role: "cashier", isActive: true },
 ]
 
 const initialProducts: Product[] = [
@@ -250,7 +251,11 @@ class Store {
   // Auth
   authenticate(email: string, password?: string): User | null {
     if (this.isMockMode || true) { // Using mock users until Supabase Auth UI is fully integrated
-      return this.users.find((u) => u.email === email && u.password === password) || null
+      const user = this.users.find((u) => u.email === email && u.password === password)
+      if (user && !user.isActive && email !== 'admin@gacal.com') {
+        throw new Error("ACCOUNT_LOCKED")
+      }
+      return user || null
     }
     return null
   }
@@ -293,7 +298,8 @@ class Store {
       name,
       email,
       password,
-      role: "admin"
+      role: "admin",
+      isActive: true // Default to active, Super Admin can lock later
     }
     this.users.push(newUser)
     

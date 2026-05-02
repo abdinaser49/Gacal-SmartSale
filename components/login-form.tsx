@@ -50,7 +50,11 @@ export function LoginForm() {
         }
       }
     } else {
-      setError(result.error || t("login_failed"))
+      if (result.error === "ACCOUNT_LOCKED") {
+        setError("Account-kaaga waa xiran yahay. Fadlan la xiriir maamulka (admin@gacal.com).")
+      } else {
+        setError(result.error || t("login_failed"))
+      }
       setIsLoading(false)
     }
 

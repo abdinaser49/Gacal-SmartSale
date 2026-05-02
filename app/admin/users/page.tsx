@@ -5,6 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { ProtectedRoute } from "@/components/protected-route"
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,10 +15,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { store, type User, type Role } from "@/lib/store"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { Plus, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react"
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<User[]>([])
+  const isSuperAdmin = currentUser?.email === "admin@gacal.com"
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
@@ -65,6 +69,11 @@ export default function UsersPage() {
     if (confirm("Are you sure you want to delete this user?")) {
       store.deleteUser(id)
     }
+  }
+
+  const toggleStatus = (user: User) => {
+    if (!isSuperAdmin) return
+    store.updateUser(user.id, { isActive: !user.isActive })
   }
 
   const getRoleBadgeVariant = (role: Role) => {
@@ -163,6 +172,7 @@ export default function UsersPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -173,6 +183,24 @@ export default function UsersPage() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={!isSuperAdmin || user.email === 'admin@gacal.com'}
+                          onClick={() => toggleStatus(user)}
+                          className={cn(
+                            "gap-2 h-8 px-2",
+                            user.isActive ? "text-green-600 hover:text-green-700" : "text-destructive hover:text-destructive/80"
+                          )}
+                        >
+                          {user.isActive ? (
+                            <><CheckCircle2 className="h-4 w-4" /> Active</>
+                          ) : (
+                            <><XCircle className="h-4 w-4" /> Locked</>
+                          )}
+                        </Button>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

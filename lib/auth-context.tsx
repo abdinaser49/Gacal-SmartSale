@@ -27,18 +27,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
-    console.log("[v0] Attempting login with:", email)
-    const authenticatedUser = store.authenticate(email, password)
-    console.log("[v0] Auth result:", authenticatedUser)
-    if (authenticatedUser) {
-      setUser(authenticatedUser)
-      store.setCurrentUserId(authenticatedUser.id)
-      localStorage.setItem("gacal_user", JSON.stringify(authenticatedUser))
-      return { success: true }
+    try {
+      const authenticatedUser = store.authenticate(email, password)
+      console.log("[v0] Auth result:", authenticatedUser)
+      if (authenticatedUser) {
+        setUser(authenticatedUser)
+        store.setCurrentUserId(authenticatedUser.id)
+        localStorage.setItem("gacal_user", JSON.stringify(authenticatedUser))
+        return { success: true }
+      }
+      return { success: false, error: "Invalid email or password" }
+    } catch (error: any) {
+      return { success: false, error: error.message }
     }
-    return { success: false, error: "Invalid email or password" }
-  }
 
   const register = async (name: string, email: string, password: string, businessName: string, phone: string, address: string) => {
     const newUser = store.register(name, email, password, businessName, phone, address)
