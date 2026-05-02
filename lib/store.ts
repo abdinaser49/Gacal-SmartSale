@@ -131,13 +131,24 @@ class Store {
   constructor() {
     // Initialize data from Supabase asynchronously if on client side
     if (typeof window !== 'undefined') {
-      // We will load user-specific settings when currentUserId is set
+      // Load users
+      const savedUsers = localStorage.getItem('gacal_users')
+      if (savedUsers) {
+        try {
+          this.users = JSON.parse(savedUsers)
+        } catch (e) {}
+      }
+
+      // Load settings (already handled partially in previous step, but let's make it consistent)
       const globalSettings = localStorage.getItem('gacal_settings')
       if (globalSettings) {
         try {
           this.settings['1'] = { ...this.defaultSettings, ...JSON.parse(globalSettings) }
         } catch (e) {}
       }
+
+      // We will load other data when currentUserId is set
+      this.loadAllData()
 
       if (!this.isMockMode) {
         this.initSupabase()
@@ -146,6 +157,61 @@ class Store {
         this.isInitialized = true
         this.notify()
       }
+    }
+  }
+
+  private loadAllData() {
+    if (typeof window === 'undefined') return
+
+    const id = this.currentUserId
+    const suffix = id ? `_${id}` : ''
+
+    const load = (key: string, defaultVal: any) => {
+      const saved = localStorage.getItem(`gacal_${key}${suffix}`)
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          return defaultVal
+        }
+      }
+      return defaultVal
+    }
+
+    if (id) {
+      this.products = load('products', initialProducts.filter(p => p.userId === id || !p.userId))
+      this.sales = load('sales', [])
+      this.customers = load('customers', initialCustomers.filter(c => c.userId === id || !c.userId))
+      this.expenses = load('expenses', initialExpenses.filter(e => e.userId === id || !e.userId))
+      
+      // Load settings for this user
+      const savedSettings = localStorage.getItem(`gacal_settings_${id}`)
+      if (savedSettings) {
+        try {
+          this.settings[id] = JSON.parse(savedSettings)
+        } catch (e) {
+          this.settings[id] = { ...this.defaultSettings }
+        }
+      } else {
+        this.settings[id] = { ...this.defaultSettings }
+      }
+    }
+  }
+
+  private saveAllData() {
+    if (typeof window === 'undefined') return
+    
+    const id = this.currentUserId
+    const suffix = id ? `_${id}` : ''
+
+    localStorage.setItem('gacal_users', JSON.stringify(this.users))
+    
+    if (id) {
+      localStorage.setItem(`gacal_products${suffix}`, JSON.stringify(this.products))
+      localStorage.setItem(`gacal_sales${suffix}`, JSON.stringify(this.sales))
+      localStorage.setItem(`gacal_customers${suffix}`, JSON.stringify(this.customers))
+      localStorage.setItem(`gacal_expenses${suffix}`, JSON.stringify(this.expenses))
+      localStorage.setItem(`gacal_settings_${id}`, JSON.stringify(this.settings[id]))
     }
   }
 
@@ -225,26 +291,13 @@ class Store {
   }
 
   private notify() {
+    this.saveAllData()
     this.listeners.forEach((listener) => listener())
   }
 
   setCurrentUserId(id: string | null) {
     this.currentUserId = id
-    
-    // Load settings for this user if not already loaded
-    if (id && !this.settings[id]) {
-      const saved = localStorage.getItem(`gacal_settings_${id}`)
-      if (saved) {
-        try {
-          this.settings[id] = JSON.parse(saved)
-        } catch (e) {
-          this.settings[id] = { ...this.defaultSettings }
-        }
-      } else {
-        this.settings[id] = { ...this.defaultSettings }
-      }
-    }
-    
+    this.loadAllData()
     this.notify()
   }
 
