@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, LogOut, CheckCircle, Printer, Package, Plus, Pencil, Trash2 } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { Sidebar } from "@/components/dashboard/sidebar"
 
 
 export default function POSPage() {
@@ -155,41 +156,48 @@ export default function POSPage() {
 
   return (
     <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
-      <div className="flex h-screen flex-col bg-muted/30">
-        <style dangerouslySetInnerHTML={{__html: `
-          @page { size: auto; margin: 0mm; }
-          @media print {
-            [role="dialog"], [data-state="open"] { display: none !important; }
-            body { background: white !important; margin: 0; padding: 0; }
-          }
-        `}} />
-        {/* Header */}
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 print:hidden">
-          <h1 className="text-xl font-bold text-primary truncate max-w-[200px]">{settings.name || "GacalSolution"} POS</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {t("welcome")}, <span className="font-medium text-foreground">{user?.name}</span>
-            </span>
-            <LanguageSwitcher />
-            
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsProductListOpen(true)}>
-                <Package className="mr-2 h-4 w-4" />
-                Inventory
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setIsAddProductOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Product
+      <div className="min-h-screen bg-background">
+        <Sidebar role={user?.role as any || "admin"} />
+        <main className="md:ml-64 flex h-screen flex-col bg-muted/30">
+          <style dangerouslySetInnerHTML={{__html: `
+            @page { size: auto; margin: 0mm; }
+            @media print {
+              [role="dialog"], [data-state="open"], aside, header { display: none !important; }
+              body { background: white !important; margin: 0; padding: 0; }
+              main { margin-left: 0 !important; }
+            }
+          `}} />
+          {/* Header */}
+          <header className="flex items-center justify-between border-b bg-card px-4 py-3 print:hidden">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-bold text-primary truncate md:hidden">{settings.name || "GacalSolution"}</h1>
+              <span className="hidden sm:inline-block text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full border">
+                POS Terminal
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="hidden lg:inline-block text-sm text-muted-foreground">
+                {t("welcome")}, <span className="font-medium text-foreground">{user?.name}</span>
+              </span>
+              <LanguageSwitcher />
+              
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsProductListOpen(true)}>
+                  <Package className="mr-2 h-4 w-4" />
+                  Inventory
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setIsAddProductOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Product
+                </Button>
+              </div>
+
+              <Button variant="ghost" size="sm" onClick={logout} className="hover:bg-destructive/10 hover:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                {t("logout")}
               </Button>
             </div>
-
-            <Button variant="ghost" size="sm" onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              {t("logout")}
-            </Button>
-          </div>
-
-        </header>
+          </header>
 
         {/* Main content */}
         <div className="flex flex-1 overflow-hidden print:hidden">
@@ -494,6 +502,8 @@ export default function POSPage() {
             />
           </DialogContent>
         </Dialog>
+      </div>
+        </main>
       </div>
     </ProtectedRoute>
   )
