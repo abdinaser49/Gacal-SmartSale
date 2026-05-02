@@ -107,7 +107,8 @@ class Store {
   private sales: Sale[] = []
   private customers: Customer[] = initialCustomers
   private expenses: Expense[] = initialExpenses
-  private settings: CompanySettings = {
+  private settings: Record<string, CompanySettings> = {}
+  private defaultSettings: CompanySettings = {
     name: "GacalSolution",
     logo: "",
     phone: "+252 61 000 0000",
@@ -128,10 +129,11 @@ class Store {
   constructor() {
     // Initialize data from Supabase asynchronously if on client side
     if (typeof window !== 'undefined') {
-      const savedSettings = localStorage.getItem('gacal_settings')
-      if (savedSettings) {
+      // We will load user-specific settings when currentUserId is set
+      const globalSettings = localStorage.getItem('gacal_settings')
+      if (globalSettings) {
         try {
-          this.settings = { ...this.settings, ...JSON.parse(savedSettings) }
+          this.settings['1'] = { ...this.defaultSettings, ...JSON.parse(globalSettings) }
         } catch (e) {}
       }
 
@@ -225,6 +227,21 @@ class Store {
 
   setCurrentUserId(id: string | null) {
     this.currentUserId = id
+    
+    // Load settings for this user if not already loaded
+    if (id && !this.settings[id]) {
+      const saved = localStorage.getItem(`gacal_settings_${id}`)
+      if (saved) {
+        try {
+          this.settings[id] = JSON.parse(saved)
+        } catch (e) {
+          this.settings[id] = { ...this.defaultSettings }
+        }
+      } else {
+        this.settings[id] = { ...this.defaultSettings }
+      }
+    }
+    
     this.notify()
   }
 
@@ -584,13 +601,22 @@ class Store {
 
   // Settings
   getSettings(): CompanySettings {
-    return { ...this.settings }
+    if (this.currentUserId && this.settings[this.currentUserId]) {
+      return { ...this.settings[this.currentUserId] }
+    }
+    return { ...this.defaultSettings }
   }
 
   updateSettings(data: Partial<CompanySettings>) {
-    this.settings = { ...this.settings, ...data }
+    if (!this.currentUserId) return
+
+    this.settings[this.currentUserId] = { 
+      ...(this.settings[this.currentUserId] || this.defaultSettings), 
+      ...data 
+    }
+    
     if (typeof window !== 'undefined') {
-      localStorage.setItem('gacal_settings', JSON.stringify(this.settings))
+      localStorage.setItem(`gacal_settings_${this.currentUserId}`, JSON.stringify(this.settings[this.currentUserId]))
     }
     this.notify()
   }
