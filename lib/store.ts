@@ -133,12 +133,7 @@ class Store {
     // Initialize data from Supabase asynchronously if on client side
     if (typeof window !== 'undefined') {
       // Load users
-      const savedUsers = localStorage.getItem('gacal_users')
-      if (savedUsers) {
-        try {
-          this.users = JSON.parse(savedUsers)
-        } catch (e) {}
-      }
+      this.loadUsers()
 
       // Load settings (already handled partially in previous step, but let's make it consistent)
       const globalSettings = localStorage.getItem('gacal_settings')
@@ -159,18 +154,8 @@ class Store {
         // Listen for storage changes from other tabs
         window.addEventListener('storage', (e) => {
           if (e.key && e.key.startsWith('gacal_')) {
+            this.loadUsers()
             this.loadAllData()
-            
-            const savedUsers = localStorage.getItem('gacal_users')
-            if (savedUsers) {
-              try {
-                this.users = JSON.parse(savedUsers)
-                // Ensure admin@gacal.com is ALWAYS there
-                if (!this.users.some(u => u.email === 'admin@gacal.com')) {
-                  this.users.push(initialUsers[0])
-                }
-              } catch (e) {}
-            }
             this.notify(false) // Don't save back during sync
           }
         })
@@ -178,6 +163,31 @@ class Store {
         this.isInitialized = true
         this.notify()
       }
+    }
+  }
+
+  private loadUsers() {
+    if (typeof window === 'undefined') return
+    const saved = localStorage.getItem('gacal_users')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.users = parsed
+        }
+      } catch (e) {}
+    }
+    
+    // Ensure admin@gacal.com always exists
+    if (!this.users.some(u => u.email === 'admin@gacal.com')) {
+      this.users.unshift({ 
+        id: "1", 
+        name: "Admin", 
+        email: "admin@gacal.com", 
+        password: "admin123", 
+        role: "admin", 
+        isActive: true 
+      })
     }
   }
 
@@ -318,6 +328,7 @@ class Store {
 
   setCurrentUserId(id: string | null) {
     this.currentUserId = id
+    this.loadUsers()
     this.loadAllData()
     this.notify()
   }
