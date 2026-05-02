@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings, Save, CheckCircle2, Building2, MonitorPlay, Camera, Trash2 } from "lucide-react"
+import { Settings, Save, CheckCircle2, Building2, MonitorPlay, Camera, Trash2, AlertTriangle, Database } from "lucide-react"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -45,6 +45,14 @@ export default function SettingsPage() {
         setSettings({...settings, logo: reader.result as string});
       };
       reader.readAsDataURL(file);
+    }
+  }
+
+  const handleResetData = () => {
+    if (confirm("Ma hubtaa? Tani waxay tirtiri doontaa dhamaan alaabta, iibka, macaamiisha iyo kharashyada. Ma awoodi doontid inaad dib u soo celiso.")) {
+      store.resetAllData()
+      alert("Nidaamka si guul leh ayaa loo nadiifiyay.")
+      window.location.reload()
     }
   }
 
@@ -87,6 +95,14 @@ export default function SettingsPage() {
                 className="rounded-md"
               >
                 <MonitorPlay className="mr-2 h-4 w-4" /> POS & Finance
+              </Button>
+              <Button 
+                variant={activeTab === "system" ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("system")}
+                className="rounded-md"
+              >
+                <Settings className="mr-2 h-4 w-4" /> System
               </Button>
             </div>
 
@@ -184,6 +200,38 @@ export default function SettingsPage() {
                           value={settings.receiptFooter} 
                           onChange={e => setSettings({...settings, receiptFooter: e.target.value})}
                         />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {activeTab === "system" && (
+                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+                  <Card className="border-destructive/50">
+                    <CardHeader className="text-destructive">
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Danger Zone
+                      </CardTitle>
+                      <CardDescription>
+                        Actions here are permanent and cannot be undone. Be very careful.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-destructive flex items-center gap-2">
+                            <Database className="h-4 w-4" />
+                            Reset All System Data
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            Delete all products, sales, customers, and expenses.
+                          </p>
+                        </div>
+                        <Button variant="destructive" onClick={handleResetData}>
+                          Clear Everything
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

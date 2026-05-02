@@ -563,6 +563,18 @@ class Store {
     }
     this.notify()
   }
+
+  resetAllData() {
+    this.products = []
+    this.sales = []
+    this.customers = []
+    this.expenses = []
+    this.notify()
+    
+    // If we want to persist the "empty" state in mock mode, 
+    // we would need to save to localStorage. 
+    // For now, this clears the current session's data.
+  }
 }
 
 export const store = new Store()
